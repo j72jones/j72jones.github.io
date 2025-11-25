@@ -1,0 +1,95 @@
+
+---
+title: "Analysis of Powerball"
+author: "James G Jones"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+Recently on my drive down GA 400 into Atlanta, I've been seeing some massive numbers for Powerball Jackpots. This prompted me to make a simple calculator for the expected return, which of course became more involved as I modeled it more effectively.
+
+# Powerball Rules
+These rules are up to date for September 2nd 2025. Each dollar prize and their odds for the powerball is listed below.
+
+| Match (normal, powerball) | Prize | Odds |
+|--------|--------|-------|
+|(5,1)|Jackpot  |	1/292,201,338 |
+|(5,0)| $1 Million | 1/11,688,053.52 |
+|(4,1)| $50,000 | 1/913,129.18 |
+|(4,0)| $100 | 1/36,525.17 |
+|(3,1)| $100 | 1/14,494.11 |
+|(3,0)| $7 | 1/579.76 |  
+|(2,1)| $7| 1/701.33 |
+|(1,1)| $4	| 1/91.98 |
+|(0,1)| $4 | 1/38.32 |
+
+The odds of each Power Play multiplier is listed below. For $50k and below, these multipliers are accurate. For $100k, Power Play is set to a 2x multiplier. For the jackpot, the Power Play has no effect.
+The 10X multiplier is only in play when the advertised jackpot is $150 million or less.
+
+| Power Play | Odds |
+|--------|--------|
+|10x | 1/43 |
+| 5x | 2/43 |
+| 4x | 3/43 |
+| 3x | 13/43 |
+| 2x | 24/43 |
+
+Without the 10x multiplier:
+
+| Power Play | Odds |
+|--------|--------|
+| 5x | 2/42 |
+| 4x | 3/42 |
+| 3x | 13/42 |
+| 2x | 24/42 |
+
+
+The current cost of a ticket is $2 and the cost to add the Power Play is $1.
+
+An important final note, if multiple people hit the jackpot, the jackpot is plit between them.
+
+# Mathematical Model
+We will split this model into a consumer and vendor model.
+
+## Consumer Model
+The jackpot is the major complication to this model, as we must take into account the number of people playing the game.
+
+Suppose we have random variable $N = $ the number of tickets sold.
+Assuming ___INSERT ASSUMPTION HERE__, we find the number of jackpot hits to be the random variable $M \sim Bin(N,1/292,201,338)$.
+We then can find the expected fraction of the jackpot you will win given you won the jackpot to be
+\begin{equation*}
+    \mathbb{E}\left[\frac{1}{M} \middle| M \geq 1\right]
+\end{equation*}
+From here, for a single ticket with jackpot $J$ we have the expected winnings without powerplay to be:
+\begin{equation*}
+    \frac{J}{292,201,338}\mathbb{E}\left[\frac{1}{M} \middle| M \geq 1\right] + \sum_{\substack{\text{Prize Level } p \\ p \neq \text{jackpot}}} p\cdot \mathbb{P}(p)
+\end{equation*}
+
+Let's denote $p = \frac{1}{292,201,338}$ for brevity. To find $\mathbb{E}\left[\frac{1}{M} \middle| M \geq 1\right]$ we can use:
+
+\begin{align*}
+    \mathbb{E}\left[\frac{1}{M} \middle| M \geq 1\right] &= p \mathbb{E}\left[\frac{1}{M+1} \right]
+    \\&= p \sum_{k=0}^n \frac{1}{1+k} \binom{n}{k} p^k (1ip)^{n-k}
+    \\&= p\frac{1}{(n+1)p} \sum_{k=0}^n \binom{n+1}{k+1} p^{k+1}(1-p)^n-k
+    \\&= \frac{1}{(n+1)} (1 - (1-p)^{n+1})
+\end{align*}
+
+<!-- As we have very large $N$ and small $p$, we can use a poisson approximation for our binomial distribution. This gives us: 
+\begin{align*}
+    \mathbb{E}\left[\frac{1}{M} \middle| M \geq 1\right] &= \sum_{k=1}^\infty \frac{1}{k} \binom{N}{1/292,201,338} (1/292,201,338)^k (1 - 1/292,201,338)^{N-k}
+    \\ &\approx \sum_{k=1}^\infty \frac{1}{k} \frac{(N/292,201,338)^k e^{-N/292,201,338}}{k!}
+\end{align*} -->
+
+```{r return_vs_jp_N, include=TRUE, echo=FALSE}
+n  <- seq(1, 15, length = 5000)
+N <- 10^n
+frac_jackpot = 1/(N+1) * (1 - (1-1/292201338)^(N+1))
+plot(n, frac_jackpot, type="l", xlab=expression(log[10]("number of tickets sold")), ylab="Expected fraction of the jackpot")
+```
+
+We can see from the above plot that the number of participants makes a significant difference to the jackpots value between $10^7$ and $10^9$.
