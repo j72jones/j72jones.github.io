@@ -51,7 +51,7 @@ Without the 10x multiplier:
 
 The current cost of a ticket is $2 and the cost to add the Power Play is $1.
 
-An important final note, if multiple people hit the jackpot, the jackpot is plit between them.
+An important final note, if multiple people hit the jackpot, the jackpot is split between them.
 
 # Mathematical Model
 We will split this model into a consumer and vendor model.
@@ -59,8 +59,8 @@ We will split this model into a consumer and vendor model.
 ## Consumer Model
 The jackpot is the major complication to this model, as we must take into account the number of people playing the game.
 
-Suppose we have random variable $N = $ the number of tickets sold.
-Assuming ___INSERT ASSUMPTION HERE__, we find the number of jackpot hits to be the random variable $M \sim Bin(N,1/292,201,338)$.
+Suppose we have random variable $N$, the number of tickets sold.
+Assuming each ticket is allocated randomly, we find the number of jackpot hits to be the random variable $M \sim Bin(N,1/292201338)$. This assumption ddoes simplify one structure, a customer who buys $n$ tickets will expect $n$ different numbers.
 We then can find the expected fraction of the jackpot you will win given you won the jackpot to be
 \begin{equation*}
     \mathbb{E}\left[\frac{1}{M} \middle| M \geq 1\right]
